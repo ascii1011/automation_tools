@@ -1,0 +1,34 @@
+---
+###
+# ec2_provision_group_web.yml
+#
+- name: "Provision web security group"
+  local_action:
+    module: ec2_group
+    name: "{{ item.sec_group }}"
+    description: "Access {{ item.sec_group }}"
+    region: "{{ region }}"
+    rules:
+      - proto: tcp
+        from_port: "{{ ssh_from_port }}"
+        to_port: "{{ ssh_to_port}}"
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+    rules_egress:
+      - proto: all
+        type: all
+        cidr_ip: 0.0.0.0/0
+
+  with_items: instances
+  when: instances and item.tags == 'web'
+  tags:
+    - ec2
+    - web
+    - sec_group

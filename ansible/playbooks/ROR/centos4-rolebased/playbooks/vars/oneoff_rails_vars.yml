@@ -1,0 +1,33 @@
+###
+# future changes:
+# - abstract out the IAAS services, image/instance options, as well as OS specific attributes; 
+# - build out seperate subnets
+###
+
+#instance
+keypair: ansibletest
+region: us-west-2
+exact_count: 1
+subnet: subnet-e43f8e93
+instance_type: m1.small
+image: ami-0b06483b
+
+#one off build scenario
+instances:
+  - { name: mysql-v1, sec_group: db_sec_group, title: V4+CENTOS+MySQ, tags: db}
+  - { name: mysql_repl_v1, sec_group: db_sec_group, title: V4+CENTOS+MySQ+REPL, tags: db_replication}
+  - { name: ror_v1, sec_group: web_sec_group, title: V4+CENTOS+NGINX+ROR, tags: web}
+  - { name: nagios, sec_group: support_sec_group, title: V4+NAGIOS, tags: support}
+
+#os
+ansible_os_family: RedHat
+ssh_user: root
+ssh_from_port: 22
+ssh_to_port: 22
+
+#override mysql primary / replication vars
+
+#override web vars
+
+#override support vars
+

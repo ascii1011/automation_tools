@@ -1,0 +1,9 @@
+---
+
+- name: Gathering ec2 information 
+  fail: msg="ec2 information was not found"
+  when: instances is not defined
+
+- include: ec2_provision_group.yml tags=sec_group
+
+- include: ec2_provision_instance.yml tags=provision_instances

@@ -1,0 +1,54 @@
+
+
+- name: Install MySQL packages
+  sudo: yes
+  yum: name={{ item }} state=present
+  with_items:
+    - mysql
+    - mysql-server
+    - MySQL-python
+
+- name: Start MySQL service
+  sudo: yes
+  service: name=mysqld state=started enabled=true
+
+
+- name: Update MySQL root password for root account
+  sudo: yes
+  mysql_user: name=root password={{ db_root_password }} priv=*.*:ALL,GRANT
+
+
+- name: Create .my.cnf file with root password credentials
+  sudo: yes
+  template: src=.my.cnf.j2 dest=/root/.my.cnf owner=root group=root mode=0600
+  notify:
+  - restart mysql
+
+
+- name: Create a database
+  sudo: yes
+  mysql_db: name={{ db_name }}
+            collation=utf8_general_ci
+            encoding=utf8
+            state=present
+
+
+ 
+
+- name: delete anonymous MySQL server user for $server_hostname
+  action: mysql_user user="" host="{{ server_hostname }}" state=absent
+
+- name: delete anonymous MySQL server user for localhost
+  action: mysql_user user="" state=absent
+
+- name: remove the MySQL test database
+  action: mysql_db db=test state=absent
+
+
+
+# Create a new database with name 'bobdata'
+- mysql_db: name=shortbread_development state=present
+
+# Copy database dump file to remote host and restore it to database 'my_db'
+- copy: src=dump.sql dest=/tmp
+- mysql_db: name=shortbread_development state=import target=/tmp/dump.sql

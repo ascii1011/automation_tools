@@ -1,0 +1,96 @@
+---
+######
+# This playbook aspires to be a production ready Ruby on Rails web app
+# Challenges:
+# - provisioned on ec2
+# - web and db seperate server
+# - db replication
+# - harden 
+######
+
+
+###
+# Provisioning a Rails infrastructure
+#
+- name: Provisioning a Rails infrastructure
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  tags: ec2
+
+  vars_files:
+    - vars/oneoff_rails_vars.yml
+
+  roles:
+    - { role: ec2_provision, tags=provision }
+
+###
+# Common Updates
+# running against launched to take advantage of forking (could use pull also)
+#
+- name: Apply Common Updates to all Instances
+  hosts: launched
+  user: "{{ ssh_user }}"
+  sudo: True
+  gather_facts: False
+  tags: ec2
+
+  vars_files:
+    - vars/oneoff_rails_vars.yml
+
+  roles:
+    - { role: common, tags: common }
+
+###
+# Install, configure, and ensure Mysql primary and replication services are running on two servers
+#
+- name: Provisioning MySQL services
+  hosts: launched
+  user: "{{ ssh_user }}"
+  sudo: True
+  tags: ec2
+
+  vars_files:
+    - vars/oneoff_rails_vars.yml
+  
+  roles:
+   - {role: mysql, mysql_db: [{name: shrtbred_production}],
+                   mysql_users: [{name: db_primary, pass: foobar, priv: "*.*:ALL"}],
+                   mysql_db_id: 8, tags: db, primary }
+
+   - {role: mysql, mysql_db: none, mysql_users: none,
+            mysql_repl_role: slave, mysql_repl_master: vm2,
+            mysql_db_id: 9, mysql_repl_user: [{name: repl, pass: foobar}], 
+	    tags: db, replication }
+
+###
+# provision ROR app using shortbread for rails config
+#
+- name: Provisioning Rails Web App
+  hosts: launched
+  user: "{{ ssh_user }}"
+  sudo: True
+  tags: ec2
+
+  vars_files:
+    - vars/oneoff_rails_vars.yml
+
+  roles:
+    - { role: rvm_on_shortbread_rails, tags: rvm, rails }
+
+
+###
+# Provision Support Services like Nagios and Graphite
+# Services would monitor provisioning, updates, and changes within all servers
+#
+- name: Provisioning Support services
+  hosts: launched
+  user: "{{ ssh_user }}"
+  sudo: True
+  tags: ec2
+
+  vars_files:
+    - vars/oneoff_rails_vars.yml
+
+  roles:
+    - { role: support, tags: support }

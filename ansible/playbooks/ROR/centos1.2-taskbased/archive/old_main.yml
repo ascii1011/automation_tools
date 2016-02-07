@@ -1,0 +1,135 @@
+---
+# demo_setup.yml
+# url: http://docs.ansible.com/guide_aws.html
+
+# AMIs:
+#  - hvm:
+#    - CentOS-6.5-Base-HVM-SR-IOV-1/30/2015 - ami-09f7d239
+#  - paravirtual:
+#    - RightImage_CentOS_6.5_x64_v14.1.3.1_EBS - ami-0b06483b
+- name: Provision CentOS + MySQL
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  vars_files:
+    - vars.yml
+
+  tasks:
+#   include task_create_sec_group.yml
+
+    - name: Launch instance
+      local_action:
+        module: ec2
+        key_name: "{{ keypair }}"
+        group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        wait: true
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ subnet }}"
+        assign_public_ip: yes
+        exact_count: 1
+        count_tag:
+          Name: CENTOS+MySQL
+        instance_tags:
+          Name: CENTOS+MySQL
+      register: ec2
+
+    - name: Add new instance to host group
+      local_action: add_host hostname={{item.public_ip}} groupname=ep2
+      with_items: ec2.instances
+
+    - name: wait for ssh to become available
+      pause: minutes=1
+
+    - name: displaying ec2 results
+      debug: var=ec2
+
+#    - name: Wait for SSH to come up
+#      wait_for: host={{item.public_dns_name}} port=22 delay=60 timeout=320 state=started
+#      with_items: ec2.instances
+
+#    - debug: msg="{{ ec2 }}"
+
+- name: Configure MySQL instance
+  hosts: ep2
+  user: ubuntu
+  sudo: True
+  tasks:
+    - name: UPDATE APT CACHE 
+      apt: update_cache=yes
+
+    - name: INSTALL MYSQL 
+      apt: name=mysql-server state=present
+
+    - name: INSTALL PYTHON-MYSQLDB
+      apt: name=python-mysqldb state=present
+
+    # Create a new database with name 'bobdata'
+    - mysql_db: name=shortbread_development state=present
+
+    # Copy database dump file to remote host and restore it to database 'my_db'
+    - copy: src=dump.sql dest=/tmp
+    - mysql_db: name=shortbread_development state=import target=/tmp/dump.sql
+
+    - name: INSTALL GIT 
+      apt: name=git
+
+
+
+
+- name: Provision CentOS + RVM + RUBY 2 + NGINX
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  vars_files:
+    - vars.yml
+
+  tasks:
+#   include task_create_sec_group.yml
+
+    - name: Launch instance
+      local_action:
+        module: ec2
+        key_name: "{{ keypair }}"
+        group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image }}"
+        wait: true
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ subnet }}"
+        assign_public_ip: yes
+        exact_count: 1
+        count_tag:
+          Name: Rails
+        instance_tags:
+          Name: Rails
+      register: ec2
+
+    - name: Add new instance to host group
+      local_action: add_host hostname={{item.public_ip}} groupname=rvm
+      with_items: ec2.instances
+
+    - name: wait for ssh to become available
+      pause: minutes=1
+
+    - name: displaying ec2 results
+      debug: var=ec2
+
+#    - name: Wait for SSH to come up
+#      wait_for: host={{item.public_dns_name}} port=22 delay=60 timeout=320 state=started
+#      with_items: ec2.instances
+
+#    - debug: msg="{{ ec2 }}"
+
+- name: Configure MySQL instance
+  hosts: rvm
+  user: ubuntu
+  sudo: True
+  tasks:
+    - name: UPDATE APT CACHE 
+      apt: update_cache=yes
+
+  roles:
+    #install RVM; url: https://github.com/rvm/rvm1-ansible; command: $ ansible-galaxy install rvm_io.rvm1-ruby
+    - { role: rvm_io.rvm1-ruby, tags: ruby, sudo: True }

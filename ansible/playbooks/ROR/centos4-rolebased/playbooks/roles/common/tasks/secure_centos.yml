@@ -1,0 +1,35 @@
+---
+- name: Install CentOS Production Packages
+  yum: name={{ item }} state=present
+  with_items:
+    - fail2ban
+    - zsh
+  tags: common
+
+- name: Add deploy user
+  action: user name=deploy password="deploy" shell=/usr/bin/zsh
+  tags: common
+
+- name: Add authorized key for deploy
+  action: authorized_key user=deploy key="{{ lookup('file', 'id_deploy.pub') }}"
+  tags: common
+
+- name: Add deploy user to sudoers
+  action: lineinfile dest=/etc/sudoers regexp="deploy ALL" line="deploy ALL=(ALL) ALL" state=present
+  tags: common
+
+#- name: Remove sudo group rights
+#  action: lineinfile dest=/etc/sudoers regexp="^%sudo" state=absent
+#  tags: common
+
+#- name: Disallow root SSH access
+#  action: lineinfile dest=/etc/ssh/sshd_config regexp="^PermitRootLogin" line="PermitRootLogin no" state=present
+#  tags: ssh
+#  notify: Restart sshd
+
+#- name: Disallow password authentication
+#  action: lineinfile dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no" state=present
+#  tags: common
+#  notify: Restart sshd
+
+

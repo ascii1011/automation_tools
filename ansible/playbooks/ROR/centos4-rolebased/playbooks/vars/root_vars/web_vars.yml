@@ -1,0 +1,3 @@
+#web variables
+security_group: web_sec_group
+web_tag_name: V1+CENTOS+Web

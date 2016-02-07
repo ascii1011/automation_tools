@@ -1,0 +1,39 @@
+---
+###
+# my intention was to build out 3 subnets (web, db, and support), where
+# - web: http/https support for public; db rw requests to primary via db subnet 
+# - support: http/https support for devops; db w requests to replicated via db subnet
+# - db: replication requests 
+# --- all servers have ssh ports open and only accessible by admins
+### 
+- name: "Ensure VPC infrastructure"
+  local_action:
+    module: ec2_vpc
+    state: present
+    cidr_block: 172.22.0.0/16
+    resource_tags: { "Environment":"Production" }
+    subnets:
+      - cidr: 172.22.1.0/24
+        az: us-west-2b
+        resource_tags: { "Environment":"Prod", "Tier" : "web" }
+      - cidr: 172.22.2.0/24
+        az: us-west-2b
+        resource_tags: { "Environment":"Prod", "Tier" : "support" }
+      - cidr: 172.22.3.0/24
+        az: us-west-2b
+        resource_tags: { "Environment":"Prod", "Tier" : "db" }
+    internet_gateway: True
+    route_tables:
+      - subnets:
+          - 172.22.2.0/24
+          - 172.22.3.0/24
+        routes:
+          - dest: 0.0.0.0/0
+            gw: igw
+      - subnets:
+          - 172.22.1.0/24
+        routes:
+          - dest: 0.0.0.0/0
+            gw: igw
+    region: {{ region }}
+  register: vpc

@@ -1,0 +1,48 @@
+---
+
+- name: "Provisioning instance/s"
+  local_action:
+    module: ec2
+    key_name: "{{ keypair }}"
+    group: "{{ item.sec_group }}"
+    instance_type: "{{ instance_type }}"
+    image: "{{ image }}"
+    wait: true
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ subnet }}"
+    assign_public_ip: yes
+    exact_count: "{{ exact_count }}"
+    count_tag: "{{ item.name }}"
+    instance_tags: "{{ item.name }}"
+
+  register: ec2
+  with_items: instances
+  when: instances
+  tags:
+    - instance
+
+
+- name: Print new instance details
+  debug: var=ec2
+  tags:
+    - debug
+
+- name: Wait for SSH to come up
+  local_action: wait_for host="{{ item.tagged_instances[0].public_dns_name }}" port="{{ ssh_from_port }}" delay=1 timeout=320 state=started 
+  with_items: ec2.results
+  tags:
+    - check_ssh_access
+
+- name: Add new instance to host group
+  #add_host: hostname="{{ item.tagged_instances[0].public_ip }}" groupname=launched instance_hostname="{{ item.item }}" user="{{ ssh_user }}"
+  add_host: hostname="{{ item.item.name }}" groupname=instances_launched instance_hostname="{{ item.item }}" user="{{ ssh_user }}"
+  with_items: ec2.results
+  register: instances_launched
+  tags:
+    - add_to_launched
+
+
+
+- debug: var=instances_launched
+  tags:
+    - debug

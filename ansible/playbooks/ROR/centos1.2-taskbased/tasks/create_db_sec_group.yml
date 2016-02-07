@@ -1,0 +1,17 @@
+---
+
+- name: Create {{ security_group }} security group
+  local_action:
+    module: ec2_group
+    name: "{{ security_group }}"
+    description: Access {{ security_group }}
+    region: us-west-2
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+    rules_egress:
+      - proto: all
+        type: all
+        cidr_ip: 0.0.0.0/0

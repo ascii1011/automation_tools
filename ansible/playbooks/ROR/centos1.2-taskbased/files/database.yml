@@ -1,0 +1,14 @@
+
+default: &
+  adapter: mysql2
+  encoding: utf8
+  pool: 5
+  timeout: 5000
+
+production:
+  <<: *default
+  database: shrtbred_production
+  username: root
+  password:
+#  host: 54.5.6.7
+  host: {{ ansible_hostname }}

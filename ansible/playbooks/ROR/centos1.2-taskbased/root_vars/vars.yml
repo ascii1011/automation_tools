@@ -1,0 +1,7 @@
+
+subnet: subnet-e43gge93
+keypair: ansibletest
+
+instance_type: m1.small
+image: ami-0b06483b
+region: us-west-2

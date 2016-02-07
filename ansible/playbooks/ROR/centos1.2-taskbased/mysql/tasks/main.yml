@@ -1,0 +1,45 @@
+---
+# tasks file for mysql
+
+- name: Install MySQL
+  hosts: ep2
+  user: root
+  sudo: True
+
+  tasks:
+  	- name: install mysql packages
+	  yum: name={{ item }} state=present
+	  with_items:
+	    - MySQL-python
+	    - mysql
+	    - mysql-server
+
+	- name: Start the MySQL service
+	  action: service name=mysqld state=started enabled=yes
+
+	- name: ensure mysql local root password
+	  mysql_user: 	check_implicit_admin=True 
+	  				login_user=root 
+	  				login_password="{{ mysql_root_password }}" 
+	  				name=root 
+	  				password="{{ mysql_root_password }}" 
+	  				state=present
+	 
+
+	- name: delete anonymous MySQL server user for $server_hostname
+	  action: mysql_user user="" host="{{ server_hostname }}" state=absent
+
+	- name: delete anonymous MySQL server user for localhost
+	  action: mysql_user user="" state=absent
+
+	- name: remove the MySQL test database
+	  action: mysql_db db=test state=absent
+
+
+
+	# Create a new database with name 'bobdata'
+	- mysql_db: name=shortbread_development state=present
+
+	# Copy database dump file to remote host and restore it to database 'my_db'
+	- copy: src=dump.sql dest=/tmp
+	- mysql_db: name=shortbread_development state=import target=/tmp/dump.sql

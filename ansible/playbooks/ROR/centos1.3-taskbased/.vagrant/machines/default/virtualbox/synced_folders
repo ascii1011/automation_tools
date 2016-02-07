@@ -1,0 +1,1 @@
+{"virtualbox":{"/vagrant":{"guestpath":"/vagrant","hostpath":"/etc/ansible/ec2/centos1.3-taskbased","disabled":false}}}

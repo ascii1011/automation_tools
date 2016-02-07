@@ -1,0 +1,6 @@
+---
+
+# Create a mysql backup bucket
+- s3: bucket="{{ s3_backup_bucket_name }}" object="{{ s3_backup_path_mysql_data }}" mode=create region="{{ region }}"
+- s3: bucket="{{ s3_backup_bucket_name }}" object="{{ s3_backup_path_mysql_logs }}" mode=create region="{{ region }}"
+  tags: s3

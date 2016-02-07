@@ -1,0 +1,99 @@
+---
+###
+# Database Provision
+#
+
+- name: EC2 Provisioning of CentOS + MySQL
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  tags: db
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/db_vars.yml
+
+  tasks:
+    - { include: tasks/provision_s3_db_backup.yml, tags: backup }
+    - { include: tasks/create_db_sec_group.yml, tags: sec_group }
+    - { include: tasks/provision_db_ec2_centos.yml, tags: provision }
+    - { include: tasks/wait_for_live_ssh.yml, tags: pause }
+
+###
+# Database Configure
+#
+- name: Configuring of CentOS + MySQL
+  hosts: mysql_instances
+  remote_user: root
+  sudo: true
+  tags: db
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/db_vars.yml
+
+  pre_tasks:
+    - { include: "tasks/common_centos.yml", tags: common }
+
+  tasks:
+    - { include: "tasks/install_mysql.yml", tags: install }
+
+  post_tasks:
+    - { include: "tasks/backup_mysql.yml", tags: backup }
+
+  handlers:
+    - name: restart ntpd
+      service: name=ntpd state=restarted
+
+
+
+#############################################3
+###
+# Web Provision
+#
+- name: Provision CentOS + RVM + RUBY 2 + NGINX
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  tags: web
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/web_vars.yml
+
+  tasks:
+    - { include: tasks/create_web_sec_group.yml, tags: sec_group }
+    - { include: tasks/provision_web_ec2_centos.yml, tags: provision }
+    - { include: tasks/wait_for_live_ssh.yml, tags: pause }
+
+###
+# Web Configure
+#
+- name: Configuring of CentOS + RVM + RUBY 2 + NGINX
+  hosts: web_instances
+  remote_user: root
+  sudo: true
+  tags: web
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/web_vars.yml
+
+  pre_tasks:
+    - { include: tasks/common_centos.yml, tags: common }
+
+  tasks:
+    - { include: tasks/install_rvm.yml, tags: [rvm, rails] }
+    - { include: tasks/install_shortbread.yml, tags: [shortbread, rails] }
+
+  post_tasks:
+    - { include: tasks/install_nginx.yml, tags: nginx }
+
+  handlers:
+    - name: start nginx
+      service: name=nginx state=started
+      tags: service_started
+
+    - name: restart nginx
+      service: name=nginx state=restarted
+      tags: service_restarted
+
+    - name: restart ntpd
+      service: name=ntpd state=restarted
+      tags: service_restart

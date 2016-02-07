@@ -1,0 +1,14 @@
+---
+##
+# Install GIT
+#
+- name: Install GIT
+  yum: name=git state=present
+
+- name: git clone shortbread (rails)
+  git: repo=https://github.com/kamoh/shortbread.git dest=/usr/share/nginx/shortbread update=no
+
+- name: Copy custom shortbread database config file to client
+  copy: src=files/database.yml 
+        dest=/usr/share/nginx/shortbread/config/database.yml
+        owner=root group=root mode=0644

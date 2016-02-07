@@ -1,0 +1,3 @@
+---
+- name: wait for ssh to become available
+  pause: minutes=1

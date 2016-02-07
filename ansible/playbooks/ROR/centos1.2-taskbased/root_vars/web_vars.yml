@@ -1,0 +1,16 @@
+#web variables
+security_group: "web_sec_group"
+web_tag_name: "V1+CENTOS+Web"
+
+ruby_version: "2.1.3"
+rvm_path: "/usr/local/rvm/gems/ruby-{{ ruby_version }}/bin:/usr/local/rvm/gems/ruby-{{ ruby_version }}@global/bin:/usr/local/rvm/rubies/ruby-{{ ruby_version }}/bin:/usr/local/rvm/bin"
+
+rails_root_path: "/var/rails/shortbread/"
+rails_app_path: "/var/rails/shortbread/app/"
+domain_name: "www.example-example-example.com"
+
+log_path: "/var/log/railsapp/"
+
+ssl_certificate_pem: "/etc/nginx/ssl/cert.pem"
+ssl_certificate_key: "/etc/nginx/ssl/server.key"
+

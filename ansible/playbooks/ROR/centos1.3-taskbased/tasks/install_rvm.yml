@@ -1,0 +1,52 @@
+---
+
+- name: ensure necessary packages are installed
+  yum: pkg=curl state=present
+
+- name: gnupg2
+  yum: pkg=gnupg2 state=present
+
+- name: ensure that GPG key for RVM is installed
+  command: gpg2 --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3
+  args:
+    creates: /root/.gnupg/secring.gpg
+
+- name: ensure that RVM is installed
+  shell: curl -L get.rvm.io | bash -s stable
+  args:
+    creates: /usr/local/rvm
+
+###
+# Need to resolve multiple installation issues by removing this pkg first
+#
+- name: uninstall libyaml 
+  yum: name=libyaml state=absent
+
+- name: ensure that ruby is installed
+  command: "rvm install {{ ruby_version }}"
+  args:
+    creates: "/usr/local/rvm/gems/ruby-{{ ruby_version }}"
+  environment:
+    PATH: "{{ rvm_path }}:{{ ansible_env.PATH }}"
+
+- name: set default version of ruby with rvm
+  command: "rvm alias create default ruby-{{ ruby_version }}"
+  args:
+    creates: /usr/local/rvm/config/alias
+  environment:
+    PATH: "{{ rvm_path }}:{{ ansible_env.PATH }}"
+
+- name: install gem dependencies
+  yum: name={{ item }} state=present
+  with_items:
+    - mysql-devel
+    - gem
+
+- name: Installs latest available version of rake.
+  gem: name=rake state=present
+
+#- name: Gem install mysql2
+#  gem: name=mysql2 user_install=false state=present
+
+#- name: Gem install rails
+#  gem: name=rails state=latest

@@ -1,0 +1,132 @@
+Prepared by Christopher Harty
+
+#################### Run it ! :) ######################
+### to run my playbook for the challenge ###
+
+Pre-Notes:
+- The playbook assumes AWS env vars and that the AWS credentials allow for AmazonS3FullAccess and PowerUserAccess
+- This script
+	- builds everything dynamically so there is no need for a host file or dynamic inventory
+	- creates two small EC2 instances, two security groups, and one S3 bucket with a couple of subfolders for backups
+
+
+Instructions:
+- download, extract, and navigate to the folder
+- IMPORTANT!! 
+    - please ensure that you do change the "subnet" value in "root_vars/vars.yml" to one that you use.
+    - please change the "keypair" value in "root_vars/vars.yml"
+    - please replace the files/setup_meter.sh with your own version
+- Now just run this simple command: "$ ansible-playbook main.yml"
+
+
+After-Party-Notes: 
+- Just wanted to point out that this playbook does not strive for best practices as time is a factor
+- I did try to include at least one case of each type of ansible task, so it is at least understood that I know how to use it.
+- the rest of my notes are embedded in the challenge requirements below as "- ch: some notes regarding a topic"
+- this version of the playbook is very different from the one which I presented previously.  As per our last discussion
+    I did rewrite the entire playbook without the extreme flexibility and abstraction that I had previously built in.  This
+    version is much more straight forward, but much more of a one-off nuts and bolts approach.
+
+##########################################
+
+
+
+#
+##
+###
+#################### Challenge status and answers ######################
+????? Challenge:
+
+
+Requirements
+
+    Rails: https://github.com/kamoh/shortbread
+    	- ch: this is being used and updated appropriately
+
+    MySQL: https://gist.github.com/jamster/b385a3cd9a81f45621a7
+    	- ch: this is updating the database
+
+
+Infrastructure
+
+    Make sure security groups allow SSH and HTTP and HTTPS where appropriate
+    	- ch: I am building to security groups (web and db) that handle port access at the infrastructure layer
+
+
+MySQL Server
+
+    Provision Cent OS server
+    Install MySQL
+    import the data file
+    Make index on short code column
+    	- ch: all of these requirements have been meet within tasks/install_mysql.yml
+
+
+NGINX/Rails Server
+
+    Provision CentOS server
+    	- ch: requirement meet
+
+    Install RVM/Ruby 2
+    	- ch: requirement meet
+
+    Use the database.yml file to point MySQL
+    	- ch: requirement meet
+
+    Install NGINX
+    	- ch: requirement meet
+
+    Configure NGINX
+        Point NGINX to Rails app
+            You don't have to set the Rails app up, but just point the NGINX config to it's public folder
+    		- ch: requirement meet
+
+        Use a self signed cert to enable SSL
+    		- ch: requirement NOT meet, I did create dummy SSL cert/server files and have them being copied over and referenced in the nginx.conf template
+
+        Make sure the app has it's own logs for access and error (not generic NGINX log)
+    		- ch: requirement NOT meet
+
+
+Overall
+
+    Ensure all components will restart if the server is rebooted
+    	- ch: I was able to meet this requirement for nginx only within tasks/install_nginx.yml
+    Have logs rotated daily
+    	- ch: requirement NOT meet
+
+
+Questions
+
+    What metrics would you think are important to monitor?
+    	- ch: ( I will be responding to this from a DevOps perspective as it pertains to AWS )
+    		- typical OS monitoring would be: heartbeat, CPU, memory, disk space, I/O traffic, as well as access and error logs
+    		  ( depending on requirements some of these will be used for infrastructure automation )
+    		- db: error and access logs, request/response latency, replication/sync tolerance
+    		- web: error logs
+    		- misc: separate heartbeat monitoring of all services (should already be a centralized live list) that do not reside within the EC2 instances (ex: S3 or 3rd party like google analytics)
+
+
+    What tools would you use to do the monitoring?
+    	- ch: I was going to use Nagios as my needs are usually internally based, but in light of my recent discussion I have utilized "Boundary" within this challenge
+
+    How would you set it up?
+    	- ch: It was an extremely easy process of just copying and running a script that you download from your Boundary account settings.
+
+    Divide this into 4 equal subnets: 192.168.200.0/24
+    	- ch: 4 x /26
+
+
+Bonus Points (we love these)
+
+    Setup a MySQL slave server
+    	- ch: bonus NOT meet, but attempted; I opted out of this as the galaxy role that I found did not work out of the box and I was pressed for time.
+
+    Make a nightly dump of the DB to S3
+    	- ch: bonus meet via bash and cron
+
+    Setup logrotate to export the oldest log to S3 before deleting
+    	- ch: bonus NOT meet
+
+    Setup a 5am cron job that counts the lines of the previous day's access_log and writes the count to a file named count-yyyy-mm-dd.txt
+    	- ch: bonus NOT meet

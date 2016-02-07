@@ -1,0 +1,16 @@
+---
+
+- name: Installs nginx web server
+  yum: name=nginx state=installed
+
+- name: ensure nginx/conf.d is empty
+  shell: rm -f /etc/nginx/conf.d/*
+
+- name: place nginx conf file
+  copy: src=files/nginx.default.conf dest=/etc/nginx/nginx.conf mode=0644 owner=root group=root
+  notify:
+    - start nginx
+
+- name: set auto start
+  sudo: true
+  shell: chkconfig nginx on

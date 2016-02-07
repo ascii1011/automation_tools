@@ -1,0 +1,21 @@
+---
+- name: Attempting to provision a CentOS server to run MySQL
+  hosts: all
+  sudo: true
+
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/db_vars.yml
+
+  pre_tasks:
+    - { include: "tasks/common_centos.yml", tags: common }
+
+  tasks:
+    - { include: "tasks/install_mysql.yml", tags: install }
+
+  post_tasks:
+    - { include: "tasks/backup_mysql.yml", tags: backup }
+
+  handlers:
+    - name: restart ntpd
+      service: name=ntpd state=restarted

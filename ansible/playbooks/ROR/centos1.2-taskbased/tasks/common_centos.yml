@@ -1,0 +1,67 @@
+---
+##
+# Access Message (SSH)
+#
+- name: Access Message
+  action: copy src=files/issue.net dest=/etc/issue.net mode=755
+  tags: common
+
+##
+# Banner Message
+#
+- name: Banner Message
+  action: copy src=files/motd dest=/etc/motd mode=755
+  tags: common
+
+##
+# Yum update all 
+#
+- name: update yum cache
+  yum: name=* state=latest
+
+##
+# Support EPEL (Extra Packages for Enterprise Linux)
+#
+#- name: install extras
+#  yum: name=epel-release state=latest
+
+
+- name: be sure ntp is installed
+  yum: pkg=ntp state=installed
+  tags: ntp
+
+#- name: be sure ntp is configured
+#  template: src=files/ntp.conf.j2 dest=/etc/ntp.conf
+#  notify:
+#    - restart ntpd
+#  tags: ntp
+
+- name: be sure ntpd is running and enabled
+  service: name=ntpd state=running enabled=yes
+  tags: ntp
+
+
+###
+# Boundary appears to have app monitoring and AWS support also
+- name: Boundary - copy meter script
+  action: copy src=setup_meter.sh dest=~/ mode=755
+  tags: common
+
+- name: Boundary - init
+  command: "./setup_meter.sh"
+
+
+
+
+
+- name: restart services on os restart
+  debug: msg="up on restart"
+
+- name: rotate logs
+  debug: msg="rotate logs!"
+
+- name: nightly dump from DB to S3
+  debug: msg="dump db to S3"
+
+- name: rotate older logs to S3
+  debug: msg="rotate older logs"

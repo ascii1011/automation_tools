@@ -1,0 +1,78 @@
+---
+- name: EC2 Provisioning of CentOS + MySQL
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/db_vars.yml
+
+  vars:
+    security_group: db_sec_group
+
+  tasks:
+    - include: tasks/create_db_sec_group.yml
+    - include: tasks/provision_db_ec2_centos.yml
+    - include: tasks/wait_2_minutes.yml
+
+- name: Configuring of CentOS + MySQL
+  hosts: mysql_instances
+  user: root
+  sudo: true
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/db_vars.yml
+
+  vars:
+    security_group: db_sec_group
+
+  tasks:
+    #- include: tasks/secure_centos.yml
+    - include: tasks/install_mysql.yml
+
+
+
+- name: Provision CentOS + RVM + RUBY 2 + NGINX
+  hosts: localhost
+  connection: local 
+  gather_facts: False
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/web_vars.yml
+
+  vars:
+    security_group: web_sec_group
+
+  tasks:
+    - include: tasks/create_web_sec_group.yml
+    - include: tasks/provision_web_ec2_centos.yml
+    - include: tasks/wait_2_minutes.yml
+
+
+
+- name: Configuring of CentOS + RVM + RUBY 2 + NGINX
+  hosts: web_instances
+  user: root
+  sudo: true
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/web_vars.yml
+
+  vars:
+    security_group: web_sec_group
+    ruby_version: "2.1.3"
+    rvm_path: "/usr/local/rvm/gems/ruby-{{ ruby_version }}/bin:/usr/local/rvm/gems/ruby-{{ ruby_version }}@global/bin:/usr/local/rvm/rubies/ruby-{{ ruby_version }}/bin:/usr/local/rvm/bin"
+
+  tasks:
+    #- include: tasks/secure_centos.yml
+
+    #- name: update yum cache
+    #  yum: name=* state=latest
+
+    #- name: install extras
+    #  yum: name=epel-release state=latest
+
+    - name: uninstall libyaml 
+      yum: name=libyaml state=absent
+
+    - include: tasks/install_rvm.yml

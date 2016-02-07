@@ -1,0 +1,25 @@
+---
+
+- name: Installs nginx web server
+  yum: name=nginx state=installed
+
+- name: ensure nginx/conf.d is empty
+  shell: rm -f /etc/nginx/conf.d/*
+
+- name: place nginx conf file
+  copy: src=files/nginx.conf dest=/etc/nginx/nginx.conf mode=0644 owner=root group=root
+  notify:
+    - start nginx
+
+- name: set auto start
+  sudo: true
+  shell: chkconfig nginx on
+
+- name: Creates directory
+  file: path=/etc/nginx/ssl state=directory
+
+- name: copy ssl pem
+  copy: src=files/cert.pem dest="{{ ssl_certificate_pem }}" mode=0644 owner=root group=root
+
+- name: copy ssl key
+  copy: src=files/server.key dest="{{ ssl_certificate_key }}" mode=0644 owner=root group=root

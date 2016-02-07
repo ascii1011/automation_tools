@@ -1,0 +1,65 @@
+---
+
+- name: Install MySQL packages
+  yum: name={{ item }} state=installed
+  with_items:
+    - mysql
+    - mysql-server
+    - MySQL-python
+  tags: mysql_install
+
+### Ensure MySQL can start before proceeding
+- name: Start MySQL service
+  service: name=mysqld state=running enabled=true
+  tags: mysql_start
+
+
+### use git for nose bleed mysql security
+### https://github.com/ayn/ansible-playbooks/blob/master/common-tasks/mysql-secure.yml
+#- name: MySQL | Set the root password.
+#  action: mysql_user user=root password=$db_root_password host=localhost
+#  tags: mysql_root
+
+#- name: MySQL | Config for easy access as root user
+#  action: template src=templates/mysql-root-cnf.j2 dest=/root/.my.cnf
+#  tags: common
+
+### Ensure password is up-to-date
+#- name: ensure mysql local root password
+#  mysql_user: check_implicit_admin=True login_user=root login_password="{{ db_root_password }}" name=root password="{{ db_root_password }}" state=present
+#  tags: mysql_root
+#  ignore_errors: true
+
+### Delete MySQL defaults for production
+#- name: delete anonymous MySQL server user for $server_hostname
+#  action: mysql_user user="" host="{{ server_hostname }}" state=absent
+#  #with_items: ec2.tagged_instances
+#  tags: mysql_secure
+#  ignore_errors: true
+
+#- name: delete anonymous MySQL server user for localhost
+#  action: mysql_user user="" state=absent
+#  tags: mysql_secure
+#  ignore_errors: true
+
+#- name: remove the MySQL test database
+#  sudo: yes
+#  action: mysql_db db=test state=absent
+#  tags: mysql_secure
+#  ignore_errors: true
+
+### Create a new database with name 'shortbread_development'
+- mysql_db: name=shrtbred_production state=present
+  tags: mysql_create_db
+#  ignore_errors: true
+
+### Copy database dump file to remote host and restore it to database 'shortbread_development'
+- copy: src=dump.sql dest=/tmp
+- mysql_db: name=shrtbred_production state=import target=/tmp/dump.sql
+  tags: mysql_update_db
+
+### Copy database update file to remote host and apply it to database 'shortbread_development'
+- copy: src=dump-update.sql dest=/tmp
+- mysql_db: name=shrtbred_production state=import target=/tmp/dump-update.sql
+  tags: mysql_update_db
+  

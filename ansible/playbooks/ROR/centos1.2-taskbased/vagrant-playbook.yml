@@ -1,0 +1,16 @@
+---
+- name: Attempting to provision a CentOS server to run MySQL
+  hosts: all
+  sudo: true
+
+  vars_files:
+    - root_vars/vars.yml
+    - root_vars/db_vars.yml
+
+  tasks:
+
+    - include: tasks/wait_2_minutes.yml
+
+    #- include: tasks/secure_centos.yml
+
+    - include: tasks/install_mysql.yml

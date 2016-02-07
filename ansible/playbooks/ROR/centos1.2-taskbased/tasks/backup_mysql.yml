@@ -1,0 +1,25 @@
+---
+################
+# daily mysql data and log backups
+################
+
+###
+# pre tasks
+#
+- name: Install required MySQL backup packages
+  yum: pkg={{ item }} state=installed
+  tags: backup
+  with_items:
+    - python-boto
+    - s3cmd
+
+###
+# backup of data
+#
+- name: Copy mysql data backup script
+  action: copy src="{{ mysql_dump_2_s3_file }}" dest="/usr/local/bin/{{ mysql_dump_2_s3_file }}" mode=700
+  tags: backup_script
+
+- name: Create cron for mysql data backup script
+  cron: name="mysql dump 2 S3" minute="0" hour="1" job="/usr/local/bin/{{ mysql_dump_2_s3_file }}"
+  tags: cron

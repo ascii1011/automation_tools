@@ -1,0 +1,4 @@
+---
+
+- include: tasks/install_rvm.yml
+- include: tasks/install_shortbread.yml

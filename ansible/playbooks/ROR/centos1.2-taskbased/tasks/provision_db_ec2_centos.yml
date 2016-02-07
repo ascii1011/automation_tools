@@ -1,0 +1,33 @@
+---
+
+- name: Launch instance
+  local_action:
+    module: ec2
+    key_name: "{{ keypair }}"
+    group: "{{ security_group }}"
+    instance_type: "{{ instance_type }}"
+    image: "{{ image }}"
+    wait: true
+    region: "{{ region }}"
+    vpc_subnet_id: "{{ subnet }}"
+    assign_public_ip: yes
+    exact_count: 1
+    count_tag:
+      Name: "{{ db_tag_name }}"
+    instance_tags:
+      Name: "{{ db_tag_name }}"
+  register: ec2
+
+
+- name: Add new instance to host group
+  local_action: add_host hostname={{ item.public_ip }} groupname=mysql_instances
+  with_items: ec2.tagged_instances
+  register: mysql_instances
+
+- name: displaying ec2 results
+  #debug: var=ec2.tagged_instances[0].public_ip
+  debug: var=ec2
+
+- name: displaying mysql_instances results
+  #debug: var=ec2.tagged_instances[0].public_ip
+  debug: var=mysql_instances

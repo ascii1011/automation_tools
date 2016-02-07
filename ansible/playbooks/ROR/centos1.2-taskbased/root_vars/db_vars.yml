@@ -1,0 +1,19 @@
+#database variables
+security_group: db_sec_group
+db_root_password: play
+db_tag_name: V3+CENTOS+MySQL
+
+log_path: "/var/backups/mysql"
+
+mysql_backup_path_data: ""
+mysql_backup_path_logs: ""
+mysql_path: ""
+mysql_log_retention_in_days : 2
+mysql_dump_2_s3_file: "mysql_fulldump_2_s3.sh"
+mysql_cnf: "/etc/my.cnf"
+
+s3_backup_bucket_name: "backup_usw2"
+s3_backup_path_mysql: "mysql"
+s3_backup_path_mysql_data: "mysql/data"
+s3_backup_path_mysql_logs: "mysql/logs"
+

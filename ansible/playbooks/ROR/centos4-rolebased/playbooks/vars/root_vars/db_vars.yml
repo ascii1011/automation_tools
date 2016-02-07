@@ -1,0 +1,4 @@
+#database variables
+security_group: db_sec_group
+db_root_password: play
+db_tag_name: V3+CENTOS+MySQL

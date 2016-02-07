@@ -1,0 +1,23 @@
+---
+- name: Attempting to provision a CentOS server to run MySQL
+  hosts: all
+  sudo: true
+
+  vars_files:
+    - root_vars/web_vars.yml
+
+  vars:
+    ruby_version: "2.1.3"
+    rvm_path: "/usr/local/rvm/gems/ruby-{{ ruby_version }}/bin:/usr/local/rvm/gems/ruby-{{ ruby_version }}@global/bin:/usr/local/rvm/rubies/ruby-{{ ruby_version }}/bin:/usr/local/rvm/bin"
+
+  tasks:
+    - include: tasks/wait_2_minutes.yml
+    #- include: tasks/secure_centos.yml
+
+    - name: update yum cache
+      yum: name=* state=latest
+
+    - name: install extras
+      yum: name=epel-release state=latest
+
+    - include: tasks/install_rvm.yml

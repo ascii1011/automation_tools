@@ -1,0 +1,23 @@
+
+# demo_setup.yml
+# url: http://docs.ansible.com/guide_aws.html
+
+# AMIs:
+#  - hvm:
+#    - CentOS-6.5-Base-HVM-SR-IOV-1/30/2015 - ami-09f7d239
+#  - paravirtual:
+#    - RightImage_CentOS_6.5_x64_v14.1.3.1_EBS - ami-0b06483b
+
+#instance
+keypair: ansibletest
+instance_type: m1.small
+image: ami-0b06483b
+region: us-west-2
+
+#os
+os_root_password_new: f00B@r
+os_root_password_current: f00B@r
+server_hostname: example-example-example.com
+
+#if time, seperate
+subnet: subnet-e43f8e93

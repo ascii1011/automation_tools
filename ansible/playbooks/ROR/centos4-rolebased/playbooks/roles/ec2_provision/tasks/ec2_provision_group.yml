@@ -1,0 +1,5 @@
+---
+
+- include: ec2_provision_group_db.yml tags=db
+- include: ec2_provision_group_web.yml tags=web
+- include: ec2_provision_group_support.yml tags=support
